@@ -4,6 +4,12 @@ const express = require('express');
 const cors = require('cors');
 
 const authRoutes = require('./routes/auth.routes');
+const tripRoutes = require('./routes/trip.routes');
+const cityRoutes = require('./routes/city.routes');
+const activityRoutes = require('./routes/activity.routes');
+const tripActivityRoutes = require('./routes/trip-activity.routes');
+const itineraryRoutes = require('./routes/itinerary.routes');
+const budgetRoutes = require('./routes/budget.routes');
 
 const app = express();
 
@@ -15,6 +21,12 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/trips', tripRoutes);
+app.use('/api/trips/:tripId/cities', cityRoutes);
+app.use('/api/trips/:tripId/cities/:cityId/activities', activityRoutes);
+app.use('/api/trips/:tripId/activities', tripActivityRoutes);
+app.use('/api/trips/:tripId/itinerary', itineraryRoutes);
+app.use('/api/trips/:tripId/budget', budgetRoutes);
 
 // 404
 app.use((req, res) => {
@@ -32,7 +44,11 @@ app.use((err, req, res, next) => {
     if (err.code === '23505') {
       err.status = 409;
       err.expose = true;
-      err.message = 'Email already exists';
+      if (err.constraint === 'users_email_key') {
+        err.message = 'Email already exists';
+      } else {
+        err.message = 'Duplicate value';
+      }
     }
 
     if (err.code === '42P01') {

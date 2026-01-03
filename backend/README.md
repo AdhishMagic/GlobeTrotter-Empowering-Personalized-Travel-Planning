@@ -3,15 +3,18 @@
 ## Setup
 
 1. Create a database (example): `globetrotter`
-2. Create `.env` in `backend/` (copy from `.env.example`)
-3. Create schema:
-   - Run `backend/src/db/schema.sql` in your Postgres database
+2. Create `.env` in `backend/` (copy from `.env.example`) and set `DATABASE_URL`
+3. Verify DB connectivity:
+   - `npm run db:test`
+4. Create schema:
+   - `npm run db:init`
 
 ## Run
 
 ```bash
 cd backend
 npm install
+npm run db:init
 npm run dev
 ```
 
