@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import Header from '../../components/ui/Header';
 import TripPlanningBreadcrumbs from '../../components/ui/TripPlanningBreadcrumbs';
 import BudgetIntegrationWidget from '../../components/ui/BudgetIntegrationWidget';
 import Icon from '../../components/AppIcon';
@@ -13,6 +12,8 @@ import EmptyState from './components/EmptyState';
 
 const AddCities = () => {
   const navigate = useNavigate();
+  const { id: tripId } = useParams();
+  const effectiveTripId = tripId || 'trip-1';
   const [selectedCities, setSelectedCities] = useState([]);
   const [isBudgetWidgetOpen, setIsBudgetWidgetOpen] = useState(false);
   const [validationError, setValidationError] = useState('');
@@ -103,14 +104,13 @@ const AddCities = () => {
       return;
     }
 
-    navigate('/activity-search');
+    navigate(`/trip/${effectiveTripId}/activities`);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="bg-background">
       <TripPlanningBreadcrumbs />
-      <main className="pt-6 pb-20 px-4 md:px-6 lg:px-8">
+      <main className="pb-20">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 md:mb-8">
             <h1 className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl text-foreground mb-2">

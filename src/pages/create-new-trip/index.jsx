@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/ui/Header';
 import TripPlanningBreadcrumbs from '../../components/ui/TripPlanningBreadcrumbs';
 import TripDetailsForm from './components/TripDetailsForm';
 import SuggestedDestinations from './components/SuggestedDestinations';
@@ -79,10 +78,12 @@ const CreateNewTrip = () => {
 
     setTimeout(() => {
       console.log('Trip created:', formData);
-      navigate('/add-cities', { 
-        state: { 
-          tripData: formData 
-        } 
+      const tripId = `trip-${Date.now()}`;
+      navigate(`/trip/${tripId}/cities`, {
+        state: {
+          tripData: formData,
+          tripId
+        }
       });
     }, 1500);
   };
@@ -111,10 +112,9 @@ const CreateNewTrip = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="bg-background">
       <TripPlanningBreadcrumbs />
-      <main className="pt-6 pb-12 px-4 md:px-6 lg:px-8">
+      <main className="pb-12">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-3">

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Header from '../../components/ui/Header';
 import TripPlanningBreadcrumbs from '../../components/ui/TripPlanningBreadcrumbs';
 import BudgetIntegrationWidget from '../../components/ui/BudgetIntegrationWidget';
 import ActivityCard from './components/ActivityCard';
@@ -275,11 +274,10 @@ const ActivitySearch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="bg-background">
       <TripPlanningBreadcrumbs />
-      <main className="pt-6 pb-24 lg:pb-12">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+      <main className="pb-24 lg:pb-12">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-6 md:mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>

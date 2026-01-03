@@ -1,19 +1,25 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import Icon from '../AppIcon';
 
 const TripPlanningBreadcrumbs = () => {
   const location = useLocation();
+  const { id: tripId } = useParams();
+  const effectiveTripId = tripId || 'trip-1';
 
   const planningSteps = [
-    { label: 'Create Trip', path: '/create-new-trip', icon: 'Plus' },
-    { label: 'Add Cities', path: '/add-cities', icon: 'MapPin' },
-    { label: 'Find Activities', path: '/activity-search', icon: 'Search' }
+    { label: 'Create Trip', path: '/trip/create', icon: 'Plus' },
+    { label: 'Add Cities', path: `/trip/${effectiveTripId}/cities`, icon: 'MapPin' },
+    { label: 'Find Activities', path: `/trip/${effectiveTripId}/activities`, icon: 'Search' }
   ];
 
-  const currentStepIndex = planningSteps?.findIndex(
-    step => step?.path === location?.pathname
-  );
+  const pathname = location?.pathname || '';
+  const currentStepIndex = (() => {
+    if (pathname === '/trip/create') return 0;
+    if (/^\/trip\/[^/]+\/cities$/.test(pathname)) return 1;
+    if (/^\/trip\/[^/]+\/activities$/.test(pathname)) return 2;
+    return -1;
+  })();
 
   if (currentStepIndex === -1) return null;
 

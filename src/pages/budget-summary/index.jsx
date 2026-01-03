@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/ui/Header';
 import BudgetIntegrationWidget from '../../components/ui/BudgetIntegrationWidget';
 import BudgetOverviewCard from './components/BudgetOverviewCard';
 import CategoryBreakdownChart from './components/CategoryBreakdownChart';
@@ -173,9 +172,8 @@ const BudgetSummary = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-20 pb-12 px-4 md:px-6 lg:px-8">
+    <div className="bg-background">
+      <main className="pb-12">
         <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>

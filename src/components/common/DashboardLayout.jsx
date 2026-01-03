@@ -1,0 +1,20 @@
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Navbar from "components/common/Navbar";
+import Sidebar from "components/common/Sidebar";
+
+export default function DashboardLayout() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="flex">
+        <Sidebar />
+        <main className="flex-1 pt-16 md:pl-64">
+          <div className="px-4 md:px-6 lg:px-8 py-6">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

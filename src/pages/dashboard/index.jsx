@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Header from '../../components/ui/Header';
 import DashboardQuickActions from '../../components/ui/DashboardQuickActions';
 import BudgetIntegrationWidget from '../../components/ui/BudgetIntegrationWidget';
 import WelcomeSection from './components/WelcomeSection';
@@ -180,10 +179,8 @@ const Dashboard = () => {
   const budgetSpentPercentage = mockSummaryData?.budgetSpent / mockSummaryData?.totalBudget * 100;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-16 pb-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 lg:py-10 space-y-6 md:space-y-8 lg:space-y-10">
+    <div className="pb-20">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 lg:space-y-10">
           <WelcomeSection userName={mockUser?.name} />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -246,8 +243,7 @@ const Dashboard = () => {
               <BudgetAlerts alerts={mockBudgetAlerts} />
             </div>
           </div>
-        </div>
-      </main>
+      </div>
       <BudgetIntegrationWidget
         isExpanded={isBudgetWidgetOpen}
         onToggle={() => setIsBudgetWidgetOpen(!isBudgetWidgetOpen)} />
