@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   profile_photo TEXT,
   language VARCHAR NOT NULL DEFAULT 'en',
   timezone VARCHAR,
+  role VARCHAR NOT NULL DEFAULT 'user',
   phone VARCHAR,
   country VARCHAR,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -26,6 +27,8 @@ ALTER TABLE users
   ADD COLUMN IF NOT EXISTS language VARCHAR NOT NULL DEFAULT 'en',
   ADD COLUMN IF NOT EXISTS timezone VARCHAR,
   ADD COLUMN IF NOT EXISTS role VARCHAR NOT NULL DEFAULT 'user';
+
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
 -- Trips
 CREATE TABLE IF NOT EXISTS trips (

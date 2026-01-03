@@ -18,6 +18,17 @@ npm run db:init
 npm run dev
 ```
 
+## Admin access
+
+Admin analytics routes under `/api/admin/*` require a user with `users.role = 'admin'`.
+
+Promote a user by email (loads `backend/.env` automatically):
+
+```bash
+cd backend
+npm run user:promote -- you@example.com
+```
+
 ## Endpoints
 
 - `POST /api/auth/register`
