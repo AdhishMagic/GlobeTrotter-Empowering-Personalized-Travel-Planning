@@ -7,13 +7,25 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name VARCHAR NOT NULL,
   last_name VARCHAR NOT NULL,
+  name VARCHAR,
   email VARCHAR NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  profile_photo TEXT,
+  language VARCHAR NOT NULL DEFAULT 'en',
+  timezone VARCHAR,
   phone VARCHAR,
   country VARCHAR,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- User profile/settings fields (Step 9)
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS name VARCHAR,
+  ADD COLUMN IF NOT EXISTS profile_photo TEXT,
+  ADD COLUMN IF NOT EXISTS language VARCHAR NOT NULL DEFAULT 'en',
+  ADD COLUMN IF NOT EXISTS timezone VARCHAR,
+  ADD COLUMN IF NOT EXISTS role VARCHAR NOT NULL DEFAULT 'user';
 
 -- Trips
 CREATE TABLE IF NOT EXISTS trips (
@@ -36,6 +48,13 @@ CREATE TABLE IF NOT EXISTS trips (
 ALTER TABLE trips
   ADD COLUMN IF NOT EXISTS budget_total NUMERIC(12, 2),
   ADD COLUMN IF NOT EXISTS currency VARCHAR NOT NULL DEFAULT 'USD';
+
+-- Trip sharing fields (Step 8)
+ALTER TABLE trips
+  ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS share_token VARCHAR UNIQUE;
+
+CREATE INDEX IF NOT EXISTS idx_trips_public ON trips(is_public) WHERE is_public = TRUE;
 
 -- Trip cities (stops)
 CREATE TABLE IF NOT EXISTS trip_cities (

@@ -10,6 +10,11 @@ const activityRoutes = require('./routes/activity.routes');
 const tripActivityRoutes = require('./routes/trip-activity.routes');
 const itineraryRoutes = require('./routes/itinerary.routes');
 const budgetRoutes = require('./routes/budget.routes');
+const calendarRoutes = require('./routes/calendar.routes');
+const timelineRoutes = require('./routes/timeline.routes');
+const shareRoutes = require('./routes/share.routes');
+const userRoutes = require('./routes/user.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -21,12 +26,19 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/trips/:tripId/cities', cityRoutes);
 app.use('/api/trips/:tripId/cities/:cityId/activities', activityRoutes);
 app.use('/api/trips/:tripId/activities', tripActivityRoutes);
 app.use('/api/trips/:tripId/itinerary', itineraryRoutes);
 app.use('/api/trips/:tripId/budget', budgetRoutes);
+app.use('/api/trips/:tripId/calendar', calendarRoutes);
+app.use('/api/trips/:tripId/timeline', timelineRoutes);
+app.use('/api/trips/:tripId/share', shareRoutes.tripShareRouter);
+app.use('/api/shared', shareRoutes.sharedRouter);
+app.use('/api/trips/public', shareRoutes.publicTripsRouter);
 
 // 404
 app.use((req, res) => {
