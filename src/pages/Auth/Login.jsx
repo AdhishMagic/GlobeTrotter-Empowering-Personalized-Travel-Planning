@@ -20,6 +20,7 @@ export default function Login() {
 
   // Preserve where the user was trying to go.
   const from = location?.state?.from;
+  const registeredEmail = location?.state?.registeredEmail;
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,7 +31,10 @@ export default function Login() {
               <LoginHeader />
               <div className="space-y-6">
                 <SocialAuthButtons />
-                <LoginForm redirectTo={typeof from === "string" ? from : "/dashboard"} />
+                <LoginForm
+                  redirectTo={typeof from === "string" ? from : "/dashboard"}
+                  initialEmail={typeof registeredEmail === "string" ? registeredEmail : ""}
+                />
                 <RegistrationPrompt />
               </div>
             </div>

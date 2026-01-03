@@ -1,17 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "context/AuthContext";
+import axios from "axios";
 import Input from "components/ui/Input";
 import Button from "components/ui/Button";
 import { Checkbox } from "components/ui/Checkbox";
 import Icon from "components/AppIcon";
 
-export default function LoginForm({ redirectTo = "/dashboard" }) {
+function getApiBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  return String(raw).replace(/\/+$/, "");
+}
+
+export default function LoginForm({ redirectTo = "/dashboard", initialEmail = "" }) {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: "",
+    email: initialEmail,
     password: "",
     rememberMe: false
   });
@@ -20,11 +26,6 @@ export default function LoginForm({ redirectTo = "/dashboard" }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
-
-  const mockCredentials = {
-    email: "traveler@globetrotter.com",
-    password: "Travel2026!"
-  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -37,8 +38,8 @@ export default function LoginForm({ redirectTo = "/dashboard" }) {
 
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
@@ -68,35 +69,44 @@ export default function LoginForm({ redirectTo = "/dashboard" }) {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (formData.email === mockCredentials.email && formData.password === mockCredentials.password) {
-        const userData = {
-          id: "user_001",
+    try {
+      const baseUrl = getApiBaseUrl();
+      const response = await axios.post(
+        `${baseUrl}/api/auth/login`,
+        {
           email: formData.email,
-          firstName: "Alex",
-          lastName: "Morgan",
-          phone: "+1 (555) 123-4567",
-          country: "United States",
-          joinedDate: "2025-06-15",
-          avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_130f98b20-1763296361147.png",
-          avatarAlt: "Professional headshot of young man with short brown hair wearing casual blue shirt"
-        };
+          password: formData.password,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-        const token = "mock_jwt_token_" + Date.now();
-        login(userData, token);
-        navigate(redirectTo, { replace: true });
-      } else {
-        setAuthError(
-          `Invalid credentials. Please use:\nEmail: ${mockCredentials.email}\nPassword: ${mockCredentials.password}`
-        );
+      const token = response?.data?.token;
+      const user = response?.data?.user;
+
+      if (!token || !user) {
+        setAuthError("Login failed. Invalid server response.");
+        return;
       }
+
+      login(user, token);
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        (err?.code === "ERR_NETWORK"
+          ? "Cannot reach backend. Start the backend on port 5000."
+          : "Invalid email or password");
+      setAuthError(message);
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   const handleForgotPassword = () => {
     alert(
-      "Password reset functionality would be implemented here.\nFor demo purposes, use the provided credentials."
+      "Password reset functionality would be implemented here."
     );
   };
 

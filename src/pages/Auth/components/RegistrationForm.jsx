@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "context/AuthContext";
+import axios from "axios";
 import Input from "components/ui/Input";
 import Button from "components/ui/Button";
 import { Checkbox } from "components/ui/Checkbox";
 import Select from "components/ui/Select";
 import Icon from "components/AppIcon";
 
+function getApiBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  return String(raw).replace(/\/+$/, "");
+}
+
 export default function RegistrationForm() {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -138,23 +142,33 @@ export default function RegistrationForm() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const baseUrl = getApiBaseUrl();
+      const selectedCountry = countries.find((c) => c.value === formData.country);
 
-      const token = "mock_jwt_token_" + Date.now();
-      const userData = {
-        id: "user_" + Date.now(),
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        country: formData.country,
-        createdAt: new Date().toISOString()
-      };
+      await axios.post(
+        `${baseUrl}/api/auth/register`,
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone || undefined,
+          country: selectedCountry?.label || formData.country || undefined,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      login(userData, token);
-      navigate("/dashboard", { replace: true });
-    } catch {
-      setErrors({ submit: "Registration failed. Please try again." });
+      // Requirement: after creating account, redirect to login page
+      navigate("/login", { replace: true, state: { registeredEmail: formData.email } });
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        (err?.code === "ERR_NETWORK"
+          ? "Cannot reach backend. Start the backend on port 5000."
+          : "Registration failed. Please try again.");
+      setErrors({ submit: message });
     } finally {
       setIsLoading(false);
     }
