@@ -7,13 +7,11 @@ import TripSection from './components/TripSection';
 import RecentActivityFeed from './components/RecentActivityFeed';
 import SuggestedDestinations from './components/SuggestedDestinations';
 import BudgetAlerts from './components/BudgetAlerts';
+import { useAuth } from '../../context/AuthContext';
 
 const Dashboard = () => {
   const [isBudgetWidgetOpen, setIsBudgetWidgetOpen] = useState(false);
-
-  const mockUser = {
-    name: "Sarah Johnson"
-  };
+  const { user } = useAuth();
 
   const mockSummaryData = {
     totalTrips: 12,
@@ -181,7 +179,7 @@ const Dashboard = () => {
   return (
     <div className="pb-20">
       <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 lg:space-y-10">
-          <WelcomeSection userName={mockUser?.name} />
+          <WelcomeSection user={user} />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <SummaryCard

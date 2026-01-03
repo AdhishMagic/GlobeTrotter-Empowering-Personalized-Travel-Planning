@@ -3,7 +3,7 @@ import Image from '../../../components/AppImage';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const TripCard = ({ trip, onSave, onShare, onClone, onView }) => {
+const TripCard = ({ trip, onWishlistToggle, onShare, onClone, onView }) => {
   const formatDuration = (days) => {
     if (days === 1) return '1 day';
     if (days < 7) return `${days} days`;
@@ -144,9 +144,16 @@ const TripCard = ({ trip, onSave, onShare, onClone, onView }) => {
           <Button
             variant="outline"
             size="sm"
-            iconName={trip?.isSaved ? 'BookmarkCheck' : 'Bookmark'}
-            onClick={() => onSave(trip?.id)}
-            className="flex-shrink-0"
+            iconName="Heart"
+            onClick={() => onWishlistToggle(trip)}
+            className={
+              [
+                'flex-shrink-0',
+                trip?.isWishlisted ? 'text-accent border-accent/30 hover:bg-accent/10 hover:text-accent' : ''
+              ].join(' ')
+            }
+            aria-label={trip?.isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            title={trip?.isWishlisted ? 'Wishlisted' : 'Add to wishlist'}
           />
           <Button
             variant="outline"

@@ -75,9 +75,15 @@ function sanitizeMe(row) {
     id: row.id,
     name: buildDisplayName(row),
     email: row.email,
+    firstName: row.first_name ?? null,
+    lastName: row.last_name ?? null,
+    phone: row.phone ?? null,
+    country: row.country ?? null,
     profilePhoto: row.profile_photo ?? null,
     language: row.language || 'en',
     timezone: row.timezone ?? null,
+    createdAt: row.created_at ?? null,
+    updatedAt: row.updated_at ?? null,
   };
 }
 
@@ -85,7 +91,7 @@ async function getMe(userId) {
   if (!userId || !isUuid(userId)) throw httpError(401, 'Unauthorized');
 
   const result = await db.query(
-    `SELECT id, first_name, last_name, name, email, profile_photo, language, timezone
+    `SELECT id, first_name, last_name, name, email, phone, country, profile_photo, language, timezone, created_at, updated_at
      FROM users
      WHERE id = $1`,
     [userId]
@@ -114,7 +120,7 @@ async function updateMe(userId, payload) {
 
   // Fetch current so we can do partial update safely.
   const current = await db.query(
-    `SELECT id, first_name, last_name, name, email, profile_photo, language, timezone
+    `SELECT id, first_name, last_name, name, email, phone, country, profile_photo, language, timezone, created_at, updated_at
      FROM users
      WHERE id = $1`,
     [userId]
@@ -146,7 +152,7 @@ async function updateMe(userId, payload) {
          language = $6,
          timezone = $7
      WHERE id = $1
-     RETURNING id, first_name, last_name, name, email, profile_photo, language, timezone`,
+     RETURNING id, first_name, last_name, name, email, phone, country, profile_photo, language, timezone, created_at, updated_at`,
     [
       userId,
       finalFirstName,

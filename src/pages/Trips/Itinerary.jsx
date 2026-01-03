@@ -10,9 +10,23 @@ import DayWiseView from "pages/Trips/itinerary/components/DayWiseView";
 import CityWiseView from "pages/Trips/itinerary/components/CityWiseView";
 import ItinerarySidebar from "pages/Trips/itinerary/components/ItinerarySidebar";
 
+import { useAuth } from "context/AuthContext";
+
+function getApiBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  return String(raw).replace(/\/+$/, "");
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value || "")
+  );
+}
+
 const Itinerary = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { token } = useAuth();
 
   const [activeView, setActiveView] = useState("day");
   const [selectedTripId, setSelectedTripId] = useState(id || "trip-1");
@@ -175,8 +189,50 @@ const Itinerary = () => {
     window.print();
   };
 
-  const handleShare = () => {
-    console.log("Share trip");
+  const handleShare = async () => {
+    const tripId = selectedTripId;
+
+    if (!token) {
+      alert("Please login to share your trip.");
+      return;
+    }
+
+    // Backend share endpoints require a real trip UUID.
+    if (!isUuid(tripId)) {
+      alert("Sharing is available only for saved trips. Open a real trip (UUID) and try again.");
+      return;
+    }
+
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/trips/${tripId}/share`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ isPublic: true }),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      alert(data?.message || "Failed to create share link");
+      return;
+    }
+
+    const shareToken = data?.shareToken;
+    const shareUrl = data?.shareUrl || (shareToken ? `${window.location.origin}/shared/${shareToken}` : null);
+
+    if (!shareUrl) {
+      alert("Could not generate a share link.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Share link copied. Send it to your friend.");
+    } catch {
+      window.prompt("Copy this link:", shareUrl);
+    }
   };
 
   return (

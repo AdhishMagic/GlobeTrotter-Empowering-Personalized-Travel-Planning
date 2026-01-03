@@ -3,7 +3,7 @@ import Image from '../../../components/AppImage';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const ActivityDetailModal = ({ activity, onClose, onAddToTrip }) => {
+const ActivityDetailModal = ({ activity, onClose, onAddToTrip, onToggleFavorite }) => {
   if (!activity) return null;
 
   const reviews = [
@@ -259,7 +259,8 @@ const ActivityDetailModal = ({ activity, onClose, onAddToTrip }) => {
               variant="outline"
               size="icon"
               iconName="Heart"
-              aria-label="Add to favorites" />
+              aria-label={activity?.isFavorite ? "Remove from wishlist" : "Add to wishlist"}
+              onClick={() => onToggleFavorite?.(activity?.id)} />
 
             <Button
               variant="outline"

@@ -102,10 +102,6 @@ const ItinerarySidebar = ({ tripData, onExport, onPrint, onShare }) => {
         <h3 className="text-lg md:text-xl font-heading font-semibold text-foreground mb-4">Quick Actions</h3>
 
         <div className="space-y-3">
-          <Button variant="outline" fullWidth iconName="Download" iconPosition="left" onClick={onExport}>
-            Export Itinerary
-          </Button>
-
           <Button variant="outline" fullWidth iconName="Printer" iconPosition="left" onClick={onPrint}>
             Print Itinerary
           </Button>

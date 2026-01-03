@@ -52,7 +52,7 @@ function generateShareToken() {
 
 function getShareBaseUrl() {
   // Frontend can override. Spec example: https://app.com/shared/<token>
-  const base = (process.env.PUBLIC_APP_URL || 'https://app.com').replace(/\/$/, '');
+  const base = (process.env.PUBLIC_APP_URL || 'http://localhost:5173').replace(/\/$/, '');
   return base;
 }
 

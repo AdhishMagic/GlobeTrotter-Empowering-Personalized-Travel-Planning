@@ -12,7 +12,10 @@ import Itinerary from "pages/Trips/Itinerary";
 import Budget from "pages/Trips/Budget";
 import Calendar from "pages/Trips/Calendar";
 import Community from "pages/Community/Community";
+import TripDetails from "pages/Community/TripDetails";
 import Profile from "pages/Profile/Profile";
+import Wishlist from "pages/Wishlist/Wishlist";
+import SharedTrip from "pages/SharedTrip/SharedTrip";
 import NotFound from "pages/NotFound";
 
 import ProtectedRoute from "components/common/ProtectedRoute";
@@ -23,16 +26,19 @@ export default function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/shared/:shareToken" element={<SharedTrip />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/trip/create" element={<CreateTrip />} />
+        <Route path="/community/:id" element={<TripDetails />} />
         <Route path="/trip/:id/cities" element={<AddCities />} />
         <Route path="/trip/:id/activities" element={<ActivitySearch />} />
         <Route path="/trip/:id/itinerary" element={<Itinerary />} />
         <Route path="/trip/:id/budget" element={<Budget />} />
         <Route path="/trip/:id/calendar" element={<Calendar />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/profile" element={<Profile />} />
 
         {/* Backwards-compatible routes (existing links) */}

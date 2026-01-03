@@ -13,7 +13,8 @@ export default function Sidebar() {
     { label: "Calendar", to: `/trip/${effectiveTripId}/calendar`, icon: "Calendar" },
     { label: "Budget", to: `/trip/${effectiveTripId}/budget`, icon: "Wallet" },
     { label: "Community", to: "/community", icon: "Users" },
-    { label: "Profile", to: "/profile", icon: "User" }
+    { label: "Profile", to: "/profile", icon: "User" },
+    { label: "Wishlist", to: "/wishlist", icon: "Heart" }
   ];
 
   return (

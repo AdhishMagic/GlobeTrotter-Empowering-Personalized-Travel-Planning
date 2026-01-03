@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams } from "react-router-dom";
 import TripPlanningBreadcrumbs from '../../components/ui/TripPlanningBreadcrumbs';
 import BudgetIntegrationWidget from '../../components/ui/BudgetIntegrationWidget';
 import ActivityCard from './components/ActivityCard';
@@ -9,7 +10,15 @@ import ActivityDetailModal from './components/ActivityDetailModal';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 
+import { useAuth } from "context/AuthContext";
+import { loadWishlistMap, toggleWishlistItem } from "utils/wishlist";
+import { loadDraft, saveDraft } from "utils/tripDraft";
+
 const ActivitySearch = () => {
+  const { user } = useAuth();
+  const userId = user?.id;
+  const { id: tripId } = useParams();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     categories: [],
@@ -22,7 +31,25 @@ const ActivitySearch = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
-  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [wishlistMap, setWishlistMap] = useState({});
+
+  // Restore trip planning state when revisiting.
+  useEffect(() => {
+    const restored = loadDraft({ userId, tripId, scope: "activities:timeline", fallback: [] });
+    if (Array.isArray(restored)) {
+      setAddedActivities(restored);
+    }
+  }, [userId, tripId]);
+
+  useEffect(() => {
+    saveDraft({ userId, tripId, scope: "activities:timeline", value: addedActivities });
+  }, [userId, tripId, addedActivities]);
+
+  useEffect(() => {
+    setWishlistMap(loadWishlistMap(userId));
+  }, [userId]);
+
+  const getActivityWishlistId = (activityId) => `activity-${String(activityId)}`;
 
   const mockActivities = [
   {
@@ -208,10 +235,12 @@ const ActivitySearch = () => {
   "Shopping Tour"];
 
 
-  const activitiesWithFavorites = mockActivities?.map((activity) => ({
-    ...activity,
-    isFavorite: favoriteIds?.includes(activity?.id)
-  }));
+  const activitiesWithFavorites = useMemo(() => {
+    return mockActivities?.map((activity) => ({
+      ...activity,
+      isFavorite: Boolean(wishlistMap && wishlistMap[getActivityWishlistId(activity?.id)]),
+    }));
+  }, [wishlistMap]);
 
   const filteredActivities = activitiesWithFavorites?.filter((activity) => {
     const matchesSearch = !searchQuery ||
@@ -266,11 +295,24 @@ const ActivitySearch = () => {
   };
 
   const handleToggleFavorite = (activityId) => {
-    setFavoriteIds((prev) =>
-    prev?.includes(activityId) ?
-    prev?.filter((id) => id !== activityId) :
-    [...prev, activityId]
-    );
+    const activity = mockActivities?.find((a) => a?.id === activityId);
+    if (!activity) return;
+
+    const wishlistItem = {
+      id: getActivityWishlistId(activity.id),
+      type: "activity",
+      name: activity?.name,
+      description: activity?.description,
+      image: activity?.image,
+      imageAlt: activity?.imageAlt,
+      duration: activity?.duration,
+      estimatedCost: activity?.estimatedCost,
+      category: activity?.category,
+      priceRange: activity?.priceRange,
+    };
+
+    const { map } = toggleWishlistItem(userId, wishlistItem);
+    setWishlistMap({ ...map });
   };
 
   return (
@@ -402,9 +444,13 @@ const ActivitySearch = () => {
 
       {selectedActivity &&
       <ActivityDetailModal
-        activity={selectedActivity}
+        activity={{
+          ...selectedActivity,
+          isFavorite: Boolean(wishlistMap && wishlistMap[getActivityWishlistId(selectedActivity?.id)]),
+        }}
         onClose={() => setSelectedActivity(null)}
-        onAddToTrip={handleAddToTrip} />
+        onAddToTrip={handleAddToTrip}
+        onToggleFavorite={handleToggleFavorite} />
 
       }
     </div>);

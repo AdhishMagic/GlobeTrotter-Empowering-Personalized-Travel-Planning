@@ -1,22 +1,116 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import Icon from "components/AppIcon";
 import Button from "components/ui/Button";
+import Input from "components/ui/Input";
 
 import { useAuth } from "context/AuthContext";
 import { useTheme } from "context/ThemeContext";
 
+function getApiBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  return String(raw).replace(/\/+$/, "");
+}
+
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+
+  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "" });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" })
+    : "—";
 
   const displayName = user ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim() : "";
 
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
+  };
+
+  const handleChangePassword = async () => {
+    if (!pwForm.currentPassword || !pwForm.newPassword) {
+      alert("Please enter your current password and a new password.");
+      return;
+    }
+    if (pwForm.newPassword.length < 8) {
+      alert("New password must be at least 8 characters.");
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const baseUrl = getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/api/users/me/password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: pwForm.currentPassword,
+          newPassword: pwForm.newPassword,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.message || "Failed to update password.");
+        return;
+      }
+
+      setPwForm({ currentPassword: "", newPassword: "" });
+      alert("Password updated successfully.");
+    } catch {
+      alert("Cannot reach backend. Start the backend on port 5000.");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const ok = window.confirm(
+      "Delete your account permanently? This will remove your trips and cannot be undone."
+    );
+    if (!ok) return;
+
+    setDeleteLoading(true);
+    try {
+      const baseUrl = getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/api/users/me`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.message || "Failed to delete account.");
+        return;
+      }
+
+      // Clean up local per-user data.
+      try {
+        if (user?.id) {
+          localStorage.removeItem(`wishlist:${String(user.id)}`);
+        }
+      } catch {
+        // ignore
+      }
+
+      logout();
+      navigate("/", { replace: true });
+    } catch {
+      alert("Cannot reach backend. Start the backend on port 5000.");
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const recentTrips = [
@@ -76,6 +170,10 @@ export default function Profile() {
               <div className="mt-6 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 rounded-lg border border-border bg-background">
+                    <p className="text-xs font-caption text-muted-foreground mb-1">User ID</p>
+                    <p className="text-sm md:text-base font-body text-foreground">{user?.id || "—"}</p>
+                  </div>
+                  <div className="p-4 rounded-lg border border-border bg-background">
                     <p className="text-xs font-caption text-muted-foreground mb-1">Phone</p>
                     <p className="text-sm md:text-base font-body text-foreground">{user?.phone || "—"}</p>
                   </div>
@@ -87,8 +185,60 @@ export default function Profile() {
 
                 <div className="p-4 rounded-lg border border-border bg-background">
                   <p className="text-xs font-caption text-muted-foreground mb-1">Member since</p>
-                  <p className="text-sm md:text-base font-body text-foreground">{user?.joinedDate || "—"}</p>
+                  <p className="text-sm md:text-base font-body text-foreground">{memberSince}</p>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border border-border elevation-1 p-4 md:p-6 mt-6">
+              <h2 className="text-lg md:text-xl font-heading font-semibold text-foreground mb-4">Account Security</h2>
+
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  type="password"
+                  label="Current password"
+                  placeholder="Enter current password"
+                  value={pwForm.currentPassword}
+                  onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                  disabled={pwLoading || deleteLoading}
+                />
+                <Input
+                  type="password"
+                  label="New password"
+                  placeholder="Enter new password"
+                  value={pwForm.newPassword}
+                  onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
+                  disabled={pwLoading || deleteLoading}
+                />
+
+                <Button
+                  variant="default"
+                  iconName="KeyRound"
+                  iconPosition="left"
+                  onClick={handleChangePassword}
+                  loading={pwLoading}
+                  disabled={pwLoading || deleteLoading || !token}
+                >
+                  Update password
+                </Button>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-border">
+                <h3 className="text-base md:text-lg font-heading font-semibold text-foreground mb-2">Danger Zone</h3>
+                <p className="text-sm text-muted-foreground font-body mb-4">
+                  Delete your account and all associated trips.
+                </p>
+                <Button
+                  variant="destructive"
+                  iconName="Trash2"
+                  iconPosition="left"
+                  onClick={handleDeleteAccount}
+                  loading={deleteLoading}
+                  disabled={deleteLoading || pwLoading || !token}
+                  className="w-full"
+                >
+                  Delete account
+                </Button>
               </div>
             </div>
           </div>

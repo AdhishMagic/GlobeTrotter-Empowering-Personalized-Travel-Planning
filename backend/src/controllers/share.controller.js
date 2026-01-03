@@ -11,6 +11,7 @@ async function setSharing(req, res, next) {
     return res.status(200).json({
       success: true,
       shareUrl: result.shareUrl,
+      shareToken: result.shareToken,
     });
   } catch (err) {
     return next(err);

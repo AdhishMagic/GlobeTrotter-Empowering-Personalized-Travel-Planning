@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 
-const ExportOptionsCard = ({ onExport }) => {
+const ExportOptionsCard = ({ onExport, onShare }) => {
   const [exportFormat, setExportFormat] = useState('pdf');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -16,8 +16,11 @@ const ExportOptionsCard = ({ onExport }) => {
 
   const handleExport = async () => {
     setIsExporting(true);
-    await onExport(exportFormat);
-    setTimeout(() => setIsExporting(false), 2000);
+    try {
+      await onExport?.(exportFormat);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -59,6 +62,8 @@ const ExportOptionsCard = ({ onExport }) => {
             fullWidth
             iconName="Share2"
             iconPosition="left"
+            onClick={() => onShare?.()}
+            disabled={isExporting}
           >
             Share with Team
           </Button>

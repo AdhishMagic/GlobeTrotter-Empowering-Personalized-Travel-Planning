@@ -11,6 +11,7 @@ async function register(req, res, next) {
       user: {
         id: user.id,
         firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
       },
     });
@@ -30,6 +31,7 @@ async function login(req, res, next) {
       user: {
         id: user.id,
         firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
       },
     });

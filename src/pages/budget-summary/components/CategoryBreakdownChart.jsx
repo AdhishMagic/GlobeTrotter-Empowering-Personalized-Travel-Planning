@@ -125,29 +125,35 @@ const CategoryBreakdownChart = ({ categories, currency = 'USD' }) => {
           </ResponsiveContainer>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {categories?.map((category, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border"
+              className="p-4 bg-muted/50 rounded-lg border border-border flex items-center justify-between gap-4 min-h-24 xl:flex-col xl:items-center xl:justify-center xl:text-center"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-3 min-w-0 xl:flex-col xl:gap-1 xl:items-center">
                 <div
-                  className="w-4 h-4 rounded-full"
+                  className="w-4 h-4 rounded-full flex-shrink-0"
                   style={{ backgroundColor: COLORS?.[category?.name] }}
                 />
-                <div>
-                  <p className="font-caption font-medium text-foreground text-sm">
+                <div className="min-w-0">
+                  <p className="font-caption font-medium text-foreground text-sm truncate xl:truncate-none">
                     {category?.name}
                   </p>
-                  <p className="font-data text-xs text-muted-foreground">
+                  <p className="xl:hidden font-data text-xs text-muted-foreground tabular-nums">
                     {((category?.spent / totalSpent) * 100)?.toFixed(1)}%
                   </p>
                 </div>
               </div>
-              <p className="font-data font-semibold text-foreground">
-                {formatCurrency(category?.spent)}
-              </p>
+
+              <div className="flex flex-col items-end xl:items-center">
+                <p className="font-data font-semibold text-foreground tabular-nums whitespace-nowrap">
+                  {formatCurrency(category?.spent)}
+                </p>
+                <p className="hidden xl:block font-data text-xs text-muted-foreground tabular-nums">
+                  {((category?.spent / totalSpent) * 100)?.toFixed(1)}%
+                </p>
+              </div>
             </div>
           ))}
         </div>

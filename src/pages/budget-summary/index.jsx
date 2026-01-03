@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import BudgetIntegrationWidget from '../../components/ui/BudgetIntegrationWidget';
 import BudgetOverviewCard from './components/BudgetOverviewCard';
 import CategoryBreakdownChart from './components/CategoryBreakdownChart';
@@ -10,8 +11,19 @@ import ExportOptionsCard from './components/ExportOptionsCard';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
 
+import { useAuth } from 'context/AuthContext';
+import { downloadText } from 'utils/download';
+import { activitiesToCsv, fetchTripPackage, tripPackageToPdf } from 'utils/tripReport';
+
+function getApiBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  return String(raw).replace(/\/+$/, '');
+}
+
 const BudgetSummary = () => {
   const navigate = useNavigate();
+  const { id: tripId } = useParams();
+  const { token } = useAuth();
   const [isBudgetWidgetExpanded, setIsBudgetWidgetExpanded] = useState(false);
 
   const budgetData = {
@@ -36,102 +48,18 @@ const BudgetSummary = () => {
   ];
 
   const expenses = [
-    {
-      id: 1,
-      name: 'Hotel Le Marais',
-      category: 'Stay',
-      city: 'Paris',
-      date: '2026-01-15',
-      amount: 1200
-    },
-    {
-      id: 2,
-      name: 'Eiffel Tower Tour',
-      category: 'Activities',
-      city: 'Paris',
-      date: '2026-01-16',
-      amount: 85
-    },
-    {
-      id: 3,
-      name: 'Train to Rome',
-      category: 'Transport',
-      city: 'Paris',
-      date: '2026-01-18',
-      amount: 450
-    },
-    {
-      id: 4,
-      name: 'Colosseum Apartment',
-      category: 'Stay',
-      city: 'Rome',
-      date: '2026-01-19',
-      amount: 900
-    },
-    {
-      id: 5,
-      name: 'Vatican Museums',
-      category: 'Activities',
-      city: 'Rome',
-      date: '2026-01-20',
-      amount: 120
-    },
-    {
-      id: 6,
-      name: 'Roman Food Tour',
-      category: 'Food',
-      city: 'Rome',
-      date: '2026-01-21',
-      amount: 180
-    },
-    {
-      id: 7,
-      name: 'Flight to Barcelona',
-      category: 'Transport',
-      city: 'Rome',
-      date: '2026-01-22',
-      amount: 350
-    },
-    {
-      id: 8,
-      name: 'Gothic Quarter Hotel',
-      category: 'Stay',
-      city: 'Barcelona',
-      date: '2026-01-23',
-      amount: 700
-    },
-    {
-      id: 9,
-      name: 'Sagrada Familia Tickets',
-      category: 'Activities',
-      city: 'Barcelona',
-      date: '2026-01-24',
-      amount: 95
-    },
-    {
-      id: 10,
-      name: 'Park Güell Entry',
-      category: 'Activities',
-      city: 'Barcelona',
-      date: '2026-01-25',
-      amount: 65
-    },
-    {
-      id: 11,
-      name: 'Tapas Dinner',
-      category: 'Food',
-      city: 'Barcelona',
-      date: '2026-01-25',
-      amount: 120
-    },
-    {
-      id: 12,
-      name: 'Airport Transfer',
-      category: 'Transport',
-      city: 'Barcelona',
-      date: '2026-01-26',
-      amount: 45
-    }
+    { id: 1, name: 'Hotel Le Marais', category: 'Stay', city: 'Paris', date: '2026-01-15', amount: 1200 },
+    { id: 2, name: 'Eiffel Tower Tour', category: 'Activities', city: 'Paris', date: '2026-01-16', amount: 85 },
+    { id: 3, name: 'Train to Rome', category: 'Transport', city: 'Paris', date: '2026-01-18', amount: 450 },
+    { id: 4, name: 'Colosseum Apartment', category: 'Stay', city: 'Rome', date: '2026-01-19', amount: 900 },
+    { id: 5, name: 'Vatican Museums', category: 'Activities', city: 'Rome', date: '2026-01-20', amount: 120 },
+    { id: 6, name: 'Roman Food Tour', category: 'Food', city: 'Rome', date: '2026-01-21', amount: 180 },
+    { id: 7, name: 'Flight to Barcelona', category: 'Transport', city: 'Rome', date: '2026-01-22', amount: 350 },
+    { id: 8, name: 'Gothic Quarter Hotel', category: 'Stay', city: 'Barcelona', date: '2026-01-23', amount: 700 },
+    { id: 9, name: 'Sagrada Familia Tickets', category: 'Activities', city: 'Barcelona', date: '2026-01-24', amount: 95 },
+    { id: 10, name: 'Park Güell Entry', category: 'Activities', city: 'Barcelona', date: '2026-01-25', amount: 65 },
+    { id: 11, name: 'Tapas Dinner', category: 'Food', city: 'Barcelona', date: '2026-01-25', amount: 120 },
+    { id: 12, name: 'Airport Transfer', category: 'Transport', city: 'Barcelona', date: '2026-01-26', amount: 45 }
   ];
 
   const budgetGoals = [
@@ -167,8 +95,80 @@ const BudgetSummary = () => {
   };
 
   const handleExport = async (format) => {
-    console.log('Exporting budget report as:', format);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    if (!tripId) {
+      alert('Trip id is missing.');
+      return;
+    }
+    if (!token) {
+      alert('Please login to export your trip.');
+      return;
+    }
+
+    const baseUrl = getApiBaseUrl();
+    const pkg = await fetchTripPackage({ baseUrl, token, tripId });
+    const safeName = (pkg?.trip?.tripName || 'trip')
+      .toString()
+      .trim()
+      .replace(/[^a-z0-9-_]+/gi, '-');
+
+    if (format === 'json') {
+      downloadText(JSON.stringify(pkg, null, 2), `${safeName}-package.json`, 'application/json;charset=utf-8');
+      return;
+    }
+
+    if (format === 'csv') {
+      downloadText(activitiesToCsv(pkg), `${safeName}-activities.csv`, 'text/csv;charset=utf-8');
+      return;
+    }
+
+    if (format === 'pdf') {
+      const doc = tripPackageToPdf(pkg);
+      doc.save(`${safeName}-trip-plan.pdf`);
+      return;
+    }
+
+    alert('This export format is not supported yet. Please use PDF, CSV, or JSON.');
+  };
+
+  const handleShare = async () => {
+    if (!tripId) {
+      alert('Trip id is missing.');
+      return;
+    }
+    if (!token) {
+      alert('Please login to share your trip.');
+      return;
+    }
+
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/trips/${tripId}/share`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ isPublic: true })
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      alert(data?.message || 'Failed to create share link');
+      return;
+    }
+
+    const shareToken = data?.shareToken;
+    const shareUrl = data?.shareUrl || (shareToken ? `${window.location.origin}/shared/${shareToken}` : null);
+    if (!shareUrl) {
+      alert('Could not generate a share link.');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied. Send it to your friend.');
+    } catch {
+      window.prompt('Copy this link:', shareUrl);
+    }
   };
 
   return (
@@ -202,14 +202,8 @@ const BudgetSummary = () => {
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-            <CategoryBreakdownChart
-              categories={categoryData}
-              currency={budgetData?.currency}
-            />
-            <BudgetGoalsCard
-              goals={budgetGoals}
-              currency={budgetData?.currency}
-            />
+            <CategoryBreakdownChart categories={categoryData} currency={budgetData?.currency} />
+            <BudgetGoalsCard goals={budgetGoals} currency={budgetData?.currency} />
           </div>
 
           <div>
@@ -269,10 +263,12 @@ const BudgetSummary = () => {
                 </div>
               </div>
             </div>
-            <ExportOptionsCard onExport={handleExport} />
+
+            <ExportOptionsCard onExport={handleExport} onShare={handleShare} />
           </div>
         </div>
       </main>
+
       <BudgetIntegrationWidget
         isExpanded={isBudgetWidgetExpanded}
         onToggle={() => setIsBudgetWidgetExpanded(!isBudgetWidgetExpanded)}
